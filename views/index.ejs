@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html" charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+      integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+      crossorigin="anonymous"
+    />
+    <title>Tiny Url</title>
+  </head>
+  <body>
+    <div class="container">
+        <% if (data.msg !== null) { %>
+          <div class="alert alert-danger fade-message" id="alertMessage" role="alert">
+              <%= data.msg %>
+          </div>
+          <%} else { %> <% }%> 
+      <h3 style="color: green">Welcome to Tiny URL</h3>
+      <input type="hidden" id="refreshed" value="no">
+      <form action="/shortUrls" method="POST" class="my-4">
+        <div class="form-group">
+          <label for="fullUrl" class="sr-only">Full Url</label>
+          <input
+            required
+            type="url"
+            name="fullUrl"
+            id="fullUrl"
+            placeholder="Url"
+            class="form-control mr-2 col-lg-6"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="shortUrl" class="sr-only">Custom alias for URL</label>
+          <input
+            type="text"
+            name="shortUrl"
+            id="shortUrl"
+            placeholder="Custom alias for URL(optional)"
+            class="form-control mr-2 col-lg-6"
+          />
+        </div>
+
+        <div class="form-group">
+            <label for="timeExpire" class="sr-only">Time Expire</label>
+            <input
+              required
+              type="number"
+              min="1"
+              max="30"
+              name="timeExpire"
+              id="timeExpire"
+              placeholder="Expire duration in minute"
+              class="form-control mr-2 col-lg-6"
+            />
+          </div>
+        
+        <button type="submit" class="btn btn-success">Create</button>
+      </form>
+      <label style="font-size:22px;">All tiny-urls list</label> 
+      <table class="table table-striped table-bordered text-center" id="url-details">
+        <thead class="bg-success" style="color: #fff; font-size:14px;">
+          <tr>
+            <th>URL</th>
+            <th>Tiny URL</th>
+            <th>Clicks</th>
+            <th>Expire in(min)</th>
+            <th>Created</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody style="overflow-y:auto">
+            <div id="mydiv" data-test=<%= shortUrls %>></div>
+            <% var test = shortUrls; %>
+            <% shortUrls.forEach(shortUrl => { %>
+              <tr>
+                <td class="text-left"><a href="<%= shortUrl.originalUrl %>"><%= shortUrl.originalUrl %></a></td>
+                <td><a href="<%= shortUrl.shortUrl %>">http://localhost:2000/<%= shortUrl.shortUrl %></a></td>
+                <td><%= shortUrl.clicks %></td>
+                <td id="<%= shortUrl.uid %>"> </td>
+                <td class="w-10"><%= moment(shortUrl.createAt).format('DD-MMM-YYYY HH:mm:ss'); %></td>
+                <td>
+                    <form method="POST" action="/uid/<%= shortUrl.uid %>">
+                      <button  type="submit" class="btn btn-outline-danger"> Delete </button>
+                    </form>
+                </td>
+              </tr>
+            <% }) %>
+        </tbody>
+      </table>
+    </div>
+       <script>
+         var allUrls = JSON.parse('<%- JSON.stringify(test) %>');
+         for (var i =0; i < allUrls.length; i++) {
+          let info = allUrls[i];
+          let x = setInterval(function() {
+              var countDownDate = new Date(info.createAt);
+              countDownDate.setMinutes(countDownDate.getMinutes() + info.timeExpire);
+              var now = new Date();
+              var distance = countDownDate - now;
+              var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+              var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+              const clock = document.getElementById(info.uid);
+              if (distance <= 0) {
+                clock.innerText = "Expired";
+                clock.style.color = "red";
+                clearInterval(x);
+              }
+              else {
+                    clock.innerHTML =  minutes > 0 ? minutes + "m " + seconds + "s " : seconds + "s ";
+                    clock.style.color = "green";
+                }
+              }, 1000);
+          }
+          if (window.performance && window.performance.navigation.type === 2) {
+              window.location.reload();   
+           }
+     </script>
+  </body>
+  
+</html>
