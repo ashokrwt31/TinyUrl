@@ -28,3 +28,4 @@ echo "Running Node server"
 echo "---------------------------------"
 npm run dev
 echo "---------------------------------"
+
